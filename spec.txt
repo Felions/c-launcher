@@ -1,0 +1,26 @@
+* Specification for ~/.c-launcher
+  1. Structure:
+    .c-launcher
+    |-pfx
+    | |-prefix_name_1
+    | |-prefix_name_2
+    |-saved
+     |-settings.json
+
+* Specification for saved/settings.json
+  ~ display_name - main name to display in menu
+  ~ executable_path - absolute path to the game
+  ~ platform - platform the game was created for (windows/linux)
+  ~ aliases - alternative names for quick lanch, must be unique
+  ~ prefix_path - path to prefix, default path will be .c-launcher/pfx/display_name
+  ~ proton_path - path to proton, default is empty to use UMU-Proton
+  {
+    display_name: 
+      {
+        executable_path: str,
+        platform: str,
+        aliases: list[str],
+        prefix_path: str,
+        proton_path: str
+      }
+  }
