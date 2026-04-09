@@ -1,4 +1,5 @@
 from pathlib import Path
+from app.utils import *
 import subprocess
 import json
 import sys
@@ -14,11 +15,117 @@ class App:
             self.start(game)
             sys.exit()
 
-        self.actions = {"help": ["Show this message", self.help],
+        self.actions = {"help": ["Show this messeage", self.help],
                         "list": ["List games", self.show],
                         "quit": ["Quits shell", sys.exit],
-                        "run": ["Runs game, useage: run [game]", self.start]}
+                        "run": ["Runs game, useage: run [game]\n\t Add -i for running in place", self.start],
+                        "info": ["Prints [game] information", self.info],
+                        "edit": ["Edits game info, useage: edit [game]", self.edit]}
     
+    def info(self, args):
+        game = " ".join(i for i in args)
+        if game not in self.data.keys():
+            for key, value in self.data.items():
+                for i in value["aliases"]:
+                    if i == game:
+                        game = key
+        if game not in self.data.keys():
+            print("Can't find '{}'".format(game))
+            return
+        
+        print("""
+Executable path: {}
+Platform: {}
+Prefix path: {}
+Proton path: {}
+Aliases: {}
+        """.format(
+              self.data[game]["executable_path"],
+              self.data[game]["platform"],
+              self.data[game]["prefix_path"],
+              self.data[game]["proton_path"],
+              ", ".join(i for i in self.data[game]["aliases"])
+              ))
+
+
+    def edit(self, args: list[str]):
+
+        game = " ".join(i for i in args)
+
+        if game not in self.data.keys():
+            for key, value in self.data.items():
+                for i in value["aliases"]:
+                    if i == game:
+                        game = key
+        if game not in self.data.keys():
+            print("Can't find '{}'".format(game))
+            return
+        
+        print("""
+Pass -m flag to modify, E.g. e -m
+
+Executable path [e]: {}
+Platform [pl]: {}
+Prefix path [pf]: {}
+Proton path [pr]: {}
+Aliases [a]: {} - Please seperate aliases with comma 
+        """.format(
+              self.data[game]["executable_path"],
+              self.data[game]["platform"],
+              self.data[game]["prefix_path"],
+              self.data[game]["proton_path"],
+              ", ".join(i for i in self.data[game]["aliases"])
+              ))
+
+        mod = input("What to modify: ").split(" ")
+
+        modify = False
+        if "-m" in mod:
+            modify = True
+
+        match mod[0]:
+            case "e":
+                what = "executable_path"
+            case "pl":
+                what = "platform"
+            case "pf":
+                what = "prefix_path"
+            case "pr":
+                what = "proton_path"
+            case "a":
+                what = "aliases"
+            case _:
+                print("Wrong option")
+                return
+
+        if modify:
+            if what != "aliases":
+                old_data = self.data[game][what]
+            else:
+                old_data = ", ".join(self.data[game][what])
+            
+            new_data = input_with_default("", "{}".format(old_data))
+        else:
+            new_data = input("{} >".format(what))
+        
+        if what != "aliases":
+            self.data[game][what] = new_data
+        else:
+            new_data = new_data.replace(" ", "").split(",")
+            all = []
+            for key, value in self.data.items():
+                if key == game:
+                    continue
+                all.extend(value["aliases"])
+            for alias in new_data:
+                if alias in all:
+                    print("Alias '{}' already in use".format(alias))
+                    return
+ 
+            self.data[game][what] = new_data
+
+        self.save()
+     
     def save(self):
         with open(Path.home() / ".c-launcher/saved/settings.json", "w") as f:
             f.write(json.dumps(self.data, default=str))
@@ -66,17 +173,27 @@ class App:
 
         self.save()
 
-    def show(self):
+    def show(self, args):
         for key, value in self.data.items():
             print("~ {} - {}".format(key, ", ".join(i for i in value["aliases"])))
     
-    def start(self, game: str, in_place: bool):
+    def start(self, args, in_place=False): #game: str, in_place=False):
+        
+        if "-i" in args:
+            in_place = True
+            args.remove("-i")
+
+        game = " ".join(i for i in args)
 
         if game not in self.data.keys():
             for key, value in self.data.items():
                 for i in value["aliases"]:
                     if i == game:
                         game = key
+        
+        if game not in self.data.keys():
+            print("Can't find '{}'".format(game))
+            return
 
         command = []
         env = os.environ.copy()
@@ -98,12 +215,21 @@ class App:
         else:
             subprocess.run(command, env=env)
 
-    def help(self):
+    def help(self, args):
+        print()
         for i, j in self.actions.items():
             print(f"{i}: {j[0]}")
+        print()
 
     def run(self):
-        while True:
-            action = input("$> ").split(" ")
-            self.actions[action[0]][1](*action[1:])
-            
+        try:
+            while True:
+                action = input("$> ").split(" ")
+                try:
+                    self.actions[action[0]][1](action[1:])
+                except KeyError:
+                    print("Try asking for 'help' ;)")
+        except EOFError, KeyboardInterrupt:
+            sys.exit()
+
+ 

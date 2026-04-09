@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from app.app import App
+from app import App
 import sys
 import argparse
 
@@ -22,22 +22,25 @@ def main():
     app = App()
 
     if args.game is not None:
-        app.start(args.game, args.in_place)
+        app.start(args.game.extend, args.in_place)
         sys.exit()
     
-    if args.add is not None:
-        if args.executable_path is None:
-            print("No path no executable provided")
-            sys.exit()
-        else:
-            app.add(args.add,
-                    args.executable_path,
-                    platform=args.platform,
-                    prefix_path=args.prefix_path,
-                    proton_path=args.proton_path,
-                    aliases=args.aliases)
-            sys.exit()
+    if args.add is not None and args.executable_path is not None:
+        app.add(args.add,
+                args.executable_path,
+                platform=args.platform,
+                prefix_path=args.prefix_path,
+                proton_path=args.proton_path,
+                aliases=args.aliases)
+        sys.exit()
 
+    if args.add is not None or args.executable_path is not None:
+        if args.executable_path is None:
+            print("No path to executable provided")
+            sys.exit()
+        if args.add is None:
+            print("No name for the game provided")
+            sys.exit()
 
     app.run()
 
