@@ -11,6 +11,8 @@ def main():
     )
     parser.add_argument("game", nargs='?', default=None, help="Runs [game]")
     parser.add_argument("-i", "--in_place", action="store_true", default=False, help="Runs [game] in this terminal window")
+    parser.add_argument("-l", "--list", action="store_true", default=False, help="Lists games and exits")
+    parser.add_argument("--info", action="store_true", default=False, help="Prints [game] information and exits")
     parser.add_argument("-a", "--add", help="Adds [game] to launcher")
     parser.add_argument("-e", "--executable_path", help="Path to executable")
     parser.add_argument("-p", "--platform", default=None, help="Platform for which the game was created [windows/linux]")
@@ -20,6 +22,13 @@ def main():
     args = parser.parse_args()
 
     app = App()
+    
+    if args.info:
+        app.info(args.game)
+
+    if args.list:
+        app.show(None)
+        sys.exit()
 
     if args.game is not None:
         app.start(args.game.extend, args.in_place)

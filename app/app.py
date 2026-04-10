@@ -7,6 +7,7 @@ import os
 
 class App:
     def __init__(self, game=""):
+        init()
         # 1. Read saved settings
         with open(Path.home() / ".c-launcher/saved/settings.json", "r") as f:
             self.data = json.loads(f.read())
@@ -20,10 +21,32 @@ class App:
                         "quit": ["Quits shell", sys.exit],
                         "run": ["Runs game, useage: run [game]\n\t Add -i for running in place", self.start],
                         "info": ["Prints [game] information", self.info],
-                        "edit": ["Edits game info, useage: edit [game]", self.edit]}
+                        "edit": ["Edits game info, useage: edit [game]", self.edit],
+                        "remove": ["Removes game from launcher, useage: edit [game]", self.remove]}
     
+    def remove(self, args):
+        if type(args) != str:
+            game = " ".join(i for i in args)
+        else:
+            game = args
+        if game not in self.data.keys():
+            for key, value in self.data.items():
+                for i in value["aliases"]:
+                    if i == game:
+                        game = key
+        if game not in self.data.keys():
+            print("Can't find '{}'".format(game))
+            return
+        
+        self.data.pop(game, None)
+        self.save()
+        print("{} was removed".format(game))
+
     def info(self, args):
-        game = " ".join(i for i in args)
+        if type(args) != str:
+            game = " ".join(i for i in args)
+        else:
+            game = args
         if game not in self.data.keys():
             for key, value in self.data.items():
                 for i in value["aliases"]:
