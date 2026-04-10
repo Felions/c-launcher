@@ -71,9 +71,9 @@ Aliases: {}
               ))
 
 
-    def edit(self, args: list[str]):
+    def edit(self, game):
 
-        game = " ".join(i for i in args)
+        #game = " ".join(i for i in args)
 
         if game not in self.data.keys():
             for key, value in self.data.items():
@@ -196,17 +196,11 @@ Aliases [a]: {} - Please seperate aliases with comma
 
         self.save()
 
-    def show(self, args):
+    def show(self):
         for key, value in self.data.items():
             print("~ {} - {}".format(key, ", ".join(i for i in value["aliases"])))
     
-    def start(self, args, in_place=False): #game: str, in_place=False):
-        
-        if "-i" in args:
-            in_place = True
-            args.remove("-i")
-
-        game = " ".join(i for i in args)
+    def start(self, game, in_place=False): #game: str, in_place=False):
 
         if game not in self.data.keys():
             for key, value in self.data.items():
@@ -238,21 +232,38 @@ Aliases [a]: {} - Please seperate aliases with comma
         else:
             subprocess.run(command, env=env)
 
-    def help(self, args):
+    def help(self):
         print()
         for i, j in self.actions.items():
             print(f"{i}: {j[0]}")
         print()
 
     def run(self):
+        flags = {
+            "-i": "in_place"
+        }
+
         try:
             while True:
                 action = input("$> ").split(" ")
                 try:
-                    self.actions[action[0]][1](action[1:])
+                    kwargs = dict()
+                    removal = list()
+                    for i in action:
+                        if i in flags.keys():
+                            kwargs[flags[i]] = True
+                            removal.append(i)
+                    for i in removal:
+                        action.remove(i)
+                    
+                    try:
+                        action[1] = " ".join(i for i in action[1:])
+                    except IndexError:
+                        pass
+                    self.actions[action[0]][1](*action[1:], **kwargs)
                 except KeyError:
                     print("Try asking for 'help' ;)")
-        except EOFError, KeyboardInterrupt:
+        except (EOFError, KeyboardInterrupt):
             sys.exit()
 
  

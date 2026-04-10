@@ -31,7 +31,7 @@ def main():
         sys.exit()
 
     if args.game is not None:
-        app.start(args.game.extend, args.in_place)
+        app.start(args.game, args.in_place)
         sys.exit()
     
     if args.add is not None and args.executable_path is not None:
