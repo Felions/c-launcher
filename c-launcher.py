@@ -12,6 +12,7 @@ def main():
     parser.add_argument("game", nargs='?', default=None, help="Runs [game]")
     parser.add_argument("-i", "--in_place", action="store_true", default=False, help="Runs [game] in this terminal window")
     parser.add_argument("-l", "--list", action="store_true", default=False, help="Lists games and exits")
+    parser.add_argument("-v", "--version", action="store_true", default=False, help="Prints version and exits")
     parser.add_argument("--info", action="store_true", default=False, help="Prints [game] information and exits")
     parser.add_argument("-a", "--add", help="Adds [game] to launcher")
     parser.add_argument("-e", "--executable_path", help="Path to executable")
@@ -23,8 +24,13 @@ def main():
 
     app = App()
     
+    if args.version:
+        print("v0.4.2")
+        sys.exit()
+
     if args.info:
         app.info(args.game)
+        sys.exit()
 
     if args.list:
         app.show(None)
